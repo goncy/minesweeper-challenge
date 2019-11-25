@@ -17,7 +17,6 @@ const Cell = styled.div`
   border: 1px solid gainsboro;
   border-radius: 4px;
   font-size: 24px;
-  transition: all 0.5s;
   background: ${({ children, shown }) =>
     shown ? (children === "💣" ? "tomato" : "whitesmoke") : "transparent"};
   color: ${({ children, shown }) =>
@@ -38,35 +37,57 @@ function getLenses(index, gridSize) {
   return [
     index % gridSize === 0 ? -1 : index - 1,
     (index + 1) % gridSize === 0 ? -1 : index + 1,
-    index + gridSize > gridSize * gridSize ? -1 : index + gridSize,
+    index + gridSize > gridSize ** 2 ? -1 : index + gridSize,
     index - gridSize < 0 ? -1 : index - gridSize,
     index % gridSize === 0 ? -1 : index - (gridSize + 1),
-    index % gridSize === 0 ? -1 : index + (gridSize + 1),
     index % gridSize === 0 ? -1 : index + (gridSize - 1),
+    (index + 1) % gridSize === 0 ? -1 : index + (gridSize + 1),
     (index + 1) % gridSize === 0 ? -1 : index - (gridSize - 1)
   ];
 }
 
+function getBombs(gridSize) {
+  return Array(gridSize)
+    .fill(true)
+    .map(() => Math.floor(Math.random() * gridSize ** 2));
+}
+
 function App() {
   const [gridSize] = React.useState(8);
-  const [bombs] = React.useState(() => new Set([0, 4, 7, 16]));
-  const [shown, setShown] = React.useState(() => new Set([]));
+  const [bombs, setBombs] = React.useState(() => new Set(getBombs(gridSize)));
+  const [shown, setShown] = React.useState(() => new Set());
   const [moves, setMoves] = React.useState(0);
+
+  function reset() {
+    setShown(new Set());
+    setBombs(new Set(getBombs(gridSize)));
+    setMoves(0);
+  }
+
+  function reveal() {
+    setShown(
+      new Set(
+        Array(gridSize * gridSize)
+          .fill(true)
+          .map((_, i) => i)
+      )
+    );
+  }
 
   function handleClick(index) {
     if (!shown.has(index)) {
-      shown.add(index);
       setMoves(moves => moves + 1);
+
+      shown.add(index);
 
       if (bombs.has(index)) {
         alert("You lost!");
-        setShown(
-          new Set(
-            Array(gridSize * gridSize)
-              .fill(true)
-              .map((_, i) => i)
-          )
-        );
+        reveal();
+      }
+
+      if (moves === gridSize ** 2 - gridSize - 1) {
+        alert("You won!");
+        reveal();
       }
     }
   }
@@ -74,8 +95,11 @@ function App() {
   return (
     <>
       <h1>Moves: {moves}</h1>
+      <h3>
+        <button onClick={reset}>Reset</button>
+      </h3>
       <Board>
-        {Array(gridSize * gridSize)
+        {Array(gridSize ** 2)
           .fill(true)
           .map((_, index) => (
             <Cell
