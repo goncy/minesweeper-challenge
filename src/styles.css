@@ -13,3 +13,10 @@ body {
   justify-content: center;
   flex-direction: column;
 }
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  margin-bottom: 10px;
+}
